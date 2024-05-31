@@ -1,0 +1,30 @@
+version: '3'
+services:
+  app:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    # image: europe-west1-docker.pkg.dev/data-pipeline-migration-dev/model-containers/opus-mt-de-en:dev-latest
+    image: ${IMAGE}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl --fail http://localhost:8080/ping || exit 1"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  test:
+    image: python:3.8
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./test.py:/test.py
+    command:
+      - /bin/sh
+      - -c
+      - pip install requests && python /test.py
